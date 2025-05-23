@@ -1,1 +1,10 @@
-﻿{"version":2,"name":"striks-voice-task-manager","rewrites":[{"source":"/(.*)", "destination":"/index.html"}]}
+{
+  "version": 2,
+  "name": "striks-voice-task-manager",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
