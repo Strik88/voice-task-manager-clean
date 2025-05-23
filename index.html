@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Cache busting tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Striks Voice Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add manifest link for PWA support -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Add theme-color for PWA -->
+    <meta name="theme-color" content="#1A2B50">
+    <!-- Add Apple touch icon for iOS -->
+    <link rel="apple-touch-icon" href="Log.png">
+    
+    <!-- Inline script voor login fallback -->
+    <script>
+        // Handler die bij page refresh wordt uitgevoerd
+        if (performance.navigation.type === 1) {
+            // Pagina wordt ververst, cache clearen
+            console.log('Page is being refreshed. Clearing cache...');
+            localStorage.removeItem('tempDOMState');
+            sessionStorage.clear();
+        }
+        
+        function handleLogin() {
+            console.log('Inline login handler executed');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const rememberKeyCheckbox = document.getElementById('remember-key');
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app-screen');
+            
+            if (apiKeyInput && loginScreen && appScreen) {
+                const inputKey = apiKeyInput.value.trim();
+                if (inputKey && inputKey.startsWith('sk-')) {
+                    const shouldRemember = rememberKeyCheckbox && rememberKeyCheckbox.checked;
+                    
+                    if (shouldRemember) {
+                        // Bewaar voor 30 dagen in localStorage met vervaldatum
+                        const expiryDate = new Date();
+                        expiryDate.setDate(expiryDate.getDate() + 30); // 30 dagen
+                        localStorage.setItem('voiceTaskApiKey', inputKey);
+                        localStorage.setItem('voiceTaskApiKeyExpiry', expiryDate.toISOString());
+                    } else {
+                        // Bewaar alleen in sessie storage (verloren bij sluiten browser)
+                        sessionStorage.setItem('voiceTaskApiKey', inputKey);
+                        localStorage.removeItem('voiceTaskApiKey');
+                        localStorage.removeItem('voiceTaskApiKeyExpiry');
+                    }
+                    
+                    // Switch screens
+                    loginScreen.classList.add('hidden');
+                    appScreen.classList.remove('hidden');
+                    console.log('Login successful via inline handler');
+                } else {
+                    alert('Voer een geldige OpenAI API key in die begint met "sk-"');
+                }
+            } else {
+                console.error('Missing elements in handleLogin');
+                if (!apiKeyInput) console.error('API key input not found');
+                if (!loginScreen) console.error('Login screen not found');
+                if (!appScreen) console.error('App screen not found');
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Error handling script to catch and show errors -->
+    <script>
+    window.addEventListener('error', function(e) {
+        console.error('Error caught:', e.error);
+        const errorDiv = document.createElement('div');
+        errorDiv.style.color = 'red';
+        errorDiv.style.padding = '10px';
+        errorDiv.style.backgroundColor = '#ffeeee';
+        errorDiv.style.margin = '10px';
+        errorDiv.style.border = '1px solid red';
+        errorDiv.textContent = 'JavaScript Error: ' + e.message;
+        document.body.prepend(errorDiv);
+    });
+    
+    // Voorkom de insertBefore error door een DOMContentLoaded event handler toe te voegen
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded - preventing insertBefore errors');
+        
+        // Voeg een marker toe om te voorkomen dat de app.js code probeert buttons toe te voegen
+        window.domIsFullyLoaded = true;
+        
+        // Force a clean state on refresh
+        if (performance.navigation.type === 1) {
+            console.log('Page was refreshed - forcing clean state');
+            window.isPageRefreshed = true;
+        }
+    });
+    </script>
+    
+    <div class="container">
+        <div id="login-screen" class="screen">
+            <div class="app-header">
+                <img src="Log.png" class="app-logo" alt="Striks Logo">
+                <h1>Striks Voice Task Manager</h1>
+            </div>
+            <div class="screen-content" style="padding: 20px;">
+                <p>Voer je OpenAI API key in om door te gaan:</p>
+                <input type="password" id="api-key-input" placeholder="sk-..." value="">
+                <div class="remember-key-container">
+                    <input type="checkbox" id="remember-key" checked>
+                    <label for="remember-key">Onthoud mijn API key voor 30 dagen</label>
+                </div>
+
+                <button id="login-button" onclick="handleLogin()">Inloggen</button>
+                <p class="info">Je API key wordt lokaal in je browser opgeslagen en wordt nooit naar onze servers verzonden.</p>
+            </div>
+        </div>
+
+        <div id="app-screen" class="screen hidden">
+            <div class="app-header">
+                <img src="Log.png" class="app-logo" alt="Striks Logo">
+                <h1>Striks Voice Task Manager</h1>
+                <button id="settings-gear-icon" class="settings-gear-icon" title="Instellingen">⚙️</button>
+            </div>
+            <div class="screen-content" style="padding: 20px;">
+                <div class="controls">
+                    <button id="record-button" class="primary-button">Start Opname</button>
+                    <button id="logout-button" class="secondary-button">Uitloggen</button>
+                </div>
+                
+                <div id="browser-warning" class="hidden warning-box">
+                    <p><strong>Let op:</strong> Op sommige desktop browsers kunnen problemen optreden met audio opname. Als de opname niet werkt:</p>
+                    <ul>
+                        <li>Controleer of je microfoon correct is aangesloten en werkt</li>
+                        <li>Zorg dat je browser toestemming heeft voor microfoon gebruik</li>
+                        <li>Probeer een andere browser zoals Chrome, Firefox of Edge</li>
+                        <li>De app werkt vaak beter op mobiele apparaten</li>
+                    </ul>
+                </div>
+                
+                <div id="status" class="status">Klaar om op te nemen</div>
+
+                <div id="notion-mapping-section" class="hidden screen-content-box" style="display: none;">
+                    <h2>Koppel je Notion Velden</h2>
+                    <p>Selecteer welke kolom in jouw Notion database overeenkomt met de volgende taakvelden. Deze opties worden gevuld zodra het schema van je database is opgehaald.</p>
+                    
+                    <div class="mapping-item">
+                        <label for="map-notion-task-name">Taak Omschrijving (Titel):</label>
+                        <select id="map-notion-task-name" class="notion-map-select">
+                            <option value="">-- Selecteer Notion Kolom --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mapping-item">
+                        <label for="map-notion-priority">Prioriteit:</label>
+                        <select id="map-notion-priority" class="notion-map-select">
+                            <option value="">-- Selecteer Notion Kolom --</option>
+                        </select>
+                    </div>
+
+                    <div class="mapping-item">
+                        <label for="map-notion-due-date">Deadline:</label>
+                        <select id="map-notion-due-date" class="notion-map-select">
+                            <option value="">-- Selecteer Notion Kolom --</option>
+                        </select>
+                    </div>
+
+                    <div class="mapping-item">
+                        <label for="map-notion-category">Categorie:</label>
+                        <select id="map-notion-category" class="notion-map-select">
+                            <option value="">-- Selecteer Notion Kolom --</option>
+                        </select>
+                    </div>
+
+                    <div class="mapping-item">
+                        <label for="map-notion-status">Status (optioneel, voor standaardwaarde):</label>
+                        <select id="map-notion-status" class="notion-map-select">
+                            <option value="">-- Selecteer Notion Kolom (Optioneel) --</option>
+                        </select>
+                        <select id="map-notion-status-option" class="notion-map-select hidden">
+                            <option value="">-- Selecteer Standaard Optie --</option>
+                        </select>
+                    </div>
+                    
+                    <button id="save-notion-mapping-button" class="secondary-button">Mapping Opslaan</button>
+                    <div id="notion-mapping-status" class="status-message"></div>
+                </div>
+
+                                <div id="transcription-container" class="text-box hidden">                    <div class="transcription-controls">                        <button id="copy-transcription-button" class="secondary-button hidden">Kopieer Transcriptie</button>                    </div>                    <div id="transcription"></div>                </div>
+                
+                <div id="tasks-container" class="hidden">
+                    <h2>Taken</h2>
+                    <div id="tasks" class="tasks-list"></div>
+                    <button id="copy-button" class="secondary-button">Kopieer Alle Taken</button>
+                </div>
+
+                <!-- Taakbeheer knoppen onderaan -->
+                <div id="task-management-controls">
+                    <button id="clear-all-tasks-button" class="danger">Alle Taken Wissen</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="striks-footer">
+            <p>Ontwikkeld door <a href="https://www.ianstrik.com" target="_blank">Ian Strik</a><br>Human Led AI Innovation</p>
+            <img src="Log.png" alt="Ian Strik Logo" class="footer-logo">
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-overlay" class="settings-overlay hidden">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h2>Instellingen</h2>
+                <button id="settings-close-button" class="settings-close-button">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-tab-container">
+                    <div class="settings-tabs">
+                        <button class="settings-tab active" data-tab="api-settings">API Instellingen</button>
+                        <button class="settings-tab" data-tab="notion-mapping">Notion Koppeling</button>
+                    </div>
+                    
+                    <!-- API Settings Tab -->
+                    <div id="api-settings" class="settings-tab-content active">
+                        <div class="settings-section">
+                            <h3>OpenAI Configuratie</h3>
+                            <div class="settings-form-group">
+                                <label for="settings-openai-key">OpenAI API Key:</label>
+                                <input type="password" id="settings-openai-key" placeholder="sk-..." value="">
+                                <div class="help-text">Je OpenAI API key voor spraak-naar-tekst en taak extractie</div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3>Notion Configuratie</h3>
+                            <div class="settings-form-group">
+                                <label for="settings-notion-key">Notion API Key:</label>
+                                <input type="password" id="settings-notion-key" placeholder="secret_..." value="">
+                                <div class="help-text">Je Notion integratie API key</div>
+                            </div>
+                            <div class="settings-form-group">
+                                <label for="settings-notion-database-id">Notion Database ID:</label>
+                                <input type="text" id="settings-notion-database-id" placeholder="32-karakter database ID" value="">
+                                <div class="help-text">De ID van je Notion database waar taken worden toegevoegd</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notion Mapping Tab -->
+                    <div id="notion-mapping" class="settings-tab-content">
+                        <div class="settings-section">
+                            <h3>Veld Koppeling</h3>
+                            <p>Koppel de taakvelden aan kolommen in je Notion database:</p>
+                            
+                            <div class="settings-form-group">
+                                <label for="settings-map-task-name">Taak Omschrijving (Titel):</label>
+                                <select id="settings-map-task-name" class="notion-map-select">
+                                    <option value="">-- Selecteer Notion Kolom --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-form-group">
+                                <label for="settings-map-priority">Prioriteit:</label>
+                                <select id="settings-map-priority" class="notion-map-select">
+                                    <option value="">-- Selecteer Notion Kolom --</option>
+                                </select>
+                            </div>
+
+                            <div class="settings-form-group">
+                                <label for="settings-map-due-date">Deadline:</label>
+                                <select id="settings-map-due-date" class="notion-map-select">
+                                    <option value="">-- Selecteer Notion Kolom --</option>
+                                </select>
+                            </div>
+
+                            <div class="settings-form-group">
+                                <label for="settings-map-category">Categorie:</label>
+                                <select id="settings-map-category" class="notion-map-select">
+                                    <option value="">-- Selecteer Notion Kolom --</option>
+                                </select>
+                            </div>
+
+                            <div class="settings-form-group">
+                                <label for="settings-map-status">Status (optioneel):</label>
+                                <select id="settings-map-status" class="notion-map-select">
+                                    <option value="">-- Selecteer Notion Kolom (Optioneel) --</option>
+                                </select>
+                                <select id="settings-map-status-option" class="notion-map-select hidden">
+                                    <option value="">-- Selecteer Standaard Optie --</option>
+                                </select>
+                            </div>
+                            
+                            <div id="settings-notion-mapping-status" class="status-message"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-actions">
+                    <button id="settings-cancel-button" class="settings-cancel-button">Annuleren</button>
+                    <button id="settings-save-button" class="settings-save-button">Opslaan</button>
+                </div>
+                
+                <!-- Credential Persistence Status -->
+                <div class="credential-status" id="credential-status">
+                    <div class="status-header">
+                        <h4>🔐 Credential Beveiliging Status</h4>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item" id="indexeddb-status">
+                            <span class="status-icon">⏳</span>
+                            <span class="status-text">IndexedDB Versleuteling</span>
+                        </div>
+                        <div class="status-item" id="serviceworker-status">
+                            <span class="status-icon">⏳</span>
+                            <span class="status-text">Service Worker Backup</span>
+                        </div>
+                        <div class="status-item" id="localstorage-status">
+                            <span class="status-icon">⏳</span>
+                            <span class="status-text">LocalStorage Fallback</span>
+                        </div>
+                        <div class="status-item" id="android-optimization">
+                            <span class="status-icon">📱</span>
+                            <span class="status-text">Android PWA Optimalisatie</span>
+                        </div>
+                    </div>
+                    <div class="status-info">
+                        <small>✅ = Actief | ⚠️ = Beperkt | ❌ = Niet beschikbaar</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add service worker registration for PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    }, function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+    <script src="app.js" defer></script>
+</body>
+</html> 
