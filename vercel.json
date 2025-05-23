@@ -1,16 +1,10 @@
 {
   "version": 2,
   "name": "striks-voice-task-manager",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/sw.js",
-      "headers": {
-        "Service-Worker-Allowed": "/"
-      }
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
