@@ -226,7 +226,7 @@ class SecureCredentialManager {
                         if (decryptedValue) {
                             credentials[key] = decryptedValue;
                         }
-                    } else {
+            } else {
                         localStorage.removeItem(`secure_${key}`);
                     }
                 }
@@ -257,8 +257,8 @@ class SecureCredentialManager {
         });
         
         // Clear legacy storage
-        localStorage.removeItem('voiceTaskApiKey');
-        localStorage.removeItem('voiceTaskApiKeyExpiry');
+                localStorage.removeItem('voiceTaskApiKey');
+                localStorage.removeItem('voiceTaskApiKeyExpiry');
         sessionStorage.removeItem('voiceTaskApiKey');
         localStorage.removeItem('voiceTaskNotionApiKey');
         localStorage.removeItem('voiceTaskNotionDatabaseId');
@@ -371,7 +371,7 @@ function requestCredentialsFromServiceWorker() {
             const { success, credentials, error } = event.data;
             if (success) {
                 resolve(credentials || {});
-            } else {
+} else {
                 console.error('Service Worker credential restore error:', error);
                 resolve({});
             }
@@ -424,9 +424,9 @@ class CredentialStatusChecker {
         try {
             if (!window.indexedDB) {
                 this.updateStatusItem(this.statusElements.indexeddb, 'disabled', '❌', 'IndexedDB Versleuteling (Niet ondersteund)');
-                return;
-            }
-
+        return;
+    }
+    
             // Test IndexedDB creation
             const testDB = await new Promise((resolve, reject) => {
                 const request = indexedDB.open('test-db', 1);
@@ -464,7 +464,7 @@ class CredentialStatusChecker {
             const registration = await navigator.serviceWorker.getRegistration();
             if (registration && registration.active) {
                 this.updateStatusItem(this.statusElements.serviceworker, 'active', '✅', 'Service Worker Backup');
-            } else {
+                } else {
                 this.updateStatusItem(this.statusElements.serviceworker, 'limited', '⚠️', 'Service Worker Backup (Registratie)');
             }
             
@@ -648,7 +648,7 @@ function setupEventListeners() {
     } else {
         console.error('❌ Record button not found');
     }
-    
+
     // Logout button event listener
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
@@ -726,18 +726,18 @@ function setupEventListeners() {
         copyTranscriptionButton.addEventListener('click', () => {
             const transcriptionText = transcriptionElement.textContent;
             if (transcriptionText) {
-                navigator.clipboard.writeText(transcriptionText)
-                    .then(() => {
-                        const originalText = copyTranscriptionButton.textContent;
-                        copyTranscriptionButton.textContent = 'Gekopieerd!';
-                        setTimeout(() => {
-                            copyTranscriptionButton.textContent = originalText;
-                        }, 2000);
-                    })
-                    .catch(err => {
-                        console.error('Failed to copy transcription: ', err);
-                        alert('Kon transcriptie niet naar klembord kopiëren');
-                    });
+            navigator.clipboard.writeText(transcriptionText)
+                .then(() => {
+                    const originalText = copyTranscriptionButton.textContent;
+                    copyTranscriptionButton.textContent = 'Gekopieerd!';
+                    setTimeout(() => {
+                        copyTranscriptionButton.textContent = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy transcription: ', err);
+                    alert('Kon transcriptie niet naar klembord kopiëren');
+                });
             }
         });
         console.log('✅ Copy transcription button event listener added');
@@ -766,7 +766,7 @@ async function startRecording() {
     
     try {
         // Request microphone access
-        const stream = await navigator.mediaDevices.getUserMedia({ 
+        const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
@@ -775,19 +775,19 @@ async function startRecording() {
         });
         
         // Setup MediaRecorder
-        let options = {};
+                let options = {};
         if (MediaRecorder.isTypeSupported('audio/webm')) {
             options.mimeType = 'audio/webm';
         } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
             options.mimeType = 'audio/mp4';
         }
         
-        mediaRecorder = new MediaRecorder(stream, options);
-        audioChunks = [];
-        
-        mediaRecorder.addEventListener('dataavailable', event => {
-            if (event.data.size > 0) {
-                audioChunks.push(event.data);
+                    mediaRecorder = new MediaRecorder(stream, options);
+                audioChunks = [];
+                
+                mediaRecorder.addEventListener('dataavailable', event => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
             }
         });
         
@@ -797,20 +797,20 @@ async function startRecording() {
         });
         
         mediaRecorder.start();
-        isRecording = true;
+                isRecording = true;
         
         recordButton.textContent = 'Stop Opname';
-        recordButton.classList.add('recording');
+                recordButton.classList.add('recording');
         statusElement.textContent = 'Opname gestart... Spreek nu je taken in';
-        
+                    
         // Auto-stop after 5 minutes
-        recordingTimer = setTimeout(() => {
+                recordingTimer = setTimeout(() => {
             if (isRecording) {
                 stopRecording();
-            }
-        }, MAX_RECORDING_TIME);
-        
-    } catch (error) {
+                    }
+                }, MAX_RECORDING_TIME);
+                    
+        } catch (error) {
         console.error('Error starting recording:', error);
         statusElement.textContent = 'Fout bij starten opname. Controleer microfoon toegang.';
     }
@@ -828,9 +828,9 @@ function stopRecording() {
         recordButton.classList.remove('recording');
         statusElement.textContent = 'Opname gestopt. Audio wordt verwerkt...';
         
-        if (recordingTimer) {
-            clearTimeout(recordingTimer);
-            recordingTimer = null;
+            if (recordingTimer) {
+                clearTimeout(recordingTimer);
+                recordingTimer = null;
         }
     }
 }
@@ -934,11 +934,11 @@ async function processAudio() {
         console.log('Making fetch request to Whisper API...');
         
         try {
-            const transcriptionResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`
-                },
+        const transcriptionResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`
+            },
                 body: formData,
                 signal: controller.signal
             });
@@ -947,9 +947,9 @@ async function processAudio() {
             console.log('=== WHISPER API RESPONSE RECEIVED ===');
             console.log('Response status:', transcriptionResponse.status);
             console.log('Response headers:', Object.fromEntries([...transcriptionResponse.headers.entries()]));
-            
-            if (!transcriptionResponse.ok) {
-                const errorText = await transcriptionResponse.text();
+        
+        if (!transcriptionResponse.ok) {
+            const errorText = await transcriptionResponse.text();
                 console.error('Whisper API error response:', errorText);
                 
                 // Specifieke foutmeldingen
@@ -960,67 +960,67 @@ async function processAudio() {
                 } else if (transcriptionResponse.status === 413) {
                     throw new Error('Audio bestand te groot. Maak een kortere opname.');
                 }
-                
-                try {
-                    const errorData = JSON.parse(errorText);
-                    console.error('Parsed error data:', errorData);
-                    throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
-                } catch (jsonError) {
-                    throw new Error(`API Error (${transcriptionResponse.status}): ${errorText || 'Unknown error'}`);
-                }
-            }
             
-            const transcriptionText = await transcriptionResponse.text();
-            console.log('Raw transcription response:', transcriptionText.substring(0, 500) + (transcriptionText.length > 500 ? '...' : ''));
-            
-            let transcriptionData;
             try {
-                transcriptionData = JSON.parse(transcriptionText);
-                console.log('Parsed transcription data:', transcriptionData);
+                const errorData = JSON.parse(errorText);
+                    console.error('Parsed error data:', errorData);
+                throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
             } catch (jsonError) {
-                console.error('Error parsing JSON from Whisper API response:', jsonError);
-                throw new Error('Kon de API-respons niet verwerken (JSON parsing error)');
+                    throw new Error(`API Error (${transcriptionResponse.status}): ${errorText || 'Unknown error'}`);
             }
-            
-            if (!transcriptionData.text || transcriptionData.text.trim() === '') {
-                console.warn('Whisper API returned empty transcription');
-                throw new Error('Geen spraak gedetecteerd in de opname. Probeer opnieuw en spreek duidelijk in de microfoon.');
-            }
-            
-            const transcribedText = transcriptionData.text;
+        }
+                    
+        const transcriptionText = await transcriptionResponse.text();
+            console.log('Raw transcription response:', transcriptionText.substring(0, 500) + (transcriptionText.length > 500 ? '...' : ''));
+        
+        let transcriptionData;
+        try {
+            transcriptionData = JSON.parse(transcriptionText);
+                console.log('Parsed transcription data:', transcriptionData);
+        } catch (jsonError) {
+            console.error('Error parsing JSON from Whisper API response:', jsonError);
+            throw new Error('Kon de API-respons niet verwerken (JSON parsing error)');
+        }
+        
+        if (!transcriptionData.text || transcriptionData.text.trim() === '') {
+            console.warn('Whisper API returned empty transcription');
+            throw new Error('Geen spraak gedetecteerd in de opname. Probeer opnieuw en spreek duidelijk in de microfoon.');
+        }
+        
+        const transcribedText = transcriptionData.text;
             console.log('=== TRANSCRIPTION SUCCESSFUL ===');
-            console.log('Transcribed text:', transcribedText);
-            
-            // Display transcription
-            transcriptionContainer.classList.remove('hidden');
-            transcriptionElement.textContent = transcribedText;
-            
+        console.log('Transcribed text:', transcribedText);
+        
+        // Display transcription
+        transcriptionContainer.classList.remove('hidden');
+        transcriptionElement.textContent = transcribedText;
+        
             // Show copy transcription button
             if (copyTranscriptionButton) {
                 copyTranscriptionButton.classList.remove('hidden');
             }
             
             // Continue with rest of processing...
-            // Detect if the transcribed text is in Dutch
-            const isDutchText = detectDutchLanguage(transcribedText);
-            
-            // Now, process the transcription using GPT to extract tasks
-            statusElement.textContent = preferDutch ? 'Taken extraheren...' : 'Extracting tasks...';
+        // Detect if the transcribed text is in Dutch
+        const isDutchText = detectDutchLanguage(transcribedText);
+        
+        // Now, process the transcription using GPT to extract tasks
+        statusElement.textContent = preferDutch ? 'Taken extraheren...' : 'Extracting tasks...';
             
             console.log('=== STARTING GPT CHAT COMPLETION ===');
-
-            const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o', // Using a more advanced model for better understanding
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `You are a specialized task extraction and processing system that works with both Dutch and English. Analyze the text and extract actionable tasks, even if they are described in a conversational or indirect manner.
+        
+        const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o', // Using a more advanced model for better understanding
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a specialized task extraction and processing system that works with both Dutch and English. Analyze the text and extract actionable tasks, even if they are described in a conversational or indirect manner.
 
 First, detect the language of the input (Dutch or English).
 
@@ -1055,55 +1055,55 @@ For "Ik moet morgen Jan bellen over het project en ook niet vergeten het rapport
 ]
 
 Return tasks as a valid JSON array with no extra text.`
-                        },
-                        { role: 'user', content: transcribedText }
-                    ],
-                    temperature: 0.3 // Lower temperature for more consistent, focused responses
-                })
-            });
+                    },
+                    { role: 'user', content: transcribedText }
+                ],
+                temperature: 0.3 // Lower temperature for more consistent, focused responses
+            })
+        });
 
             console.log('GPT Chat response status:', chatResponse.status);
-
-            if (!chatResponse.ok) {
-                const errorData = await chatResponse.json();
+        
+        if (!chatResponse.ok) {
+            const errorData = await chatResponse.json();
                 console.error('GPT Chat error:', errorData);
-                throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
-            }
-
-            const chatData = await chatResponse.json();
+            throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
+        }
+        
+        const chatData = await chatResponse.json();
             console.log('GPT Chat response received:', chatData);
 
-            let tasksArray = [];
-
-            try {
-                // Parse the response to extract the tasks
-                const content = chatData.choices[0].message.content.trim();
+        let tasksArray = [];
+        
+        try {
+            // Parse the response to extract the tasks
+            const content = chatData.choices[0].message.content.trim();
                 console.log('GPT response content:', content);
                 
-                // Attempt to extract JSON if it's wrapped in markdown code blocks
-                const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || content.match(/\[([\s\S]*)\]/);
-                const jsonString = jsonMatch ? jsonMatch[1] : content;
+            // Attempt to extract JSON if it's wrapped in markdown code blocks
+            const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || content.match(/\[([\s\S]*)\]/);
+            const jsonString = jsonMatch ? jsonMatch[1] : content;
                 console.log('Extracted JSON string:', jsonString);
                 
-                tasksArray = JSON.parse(jsonString.includes('[') ? jsonString : `[${jsonString}]`);
+            tasksArray = JSON.parse(jsonString.includes('[') ? jsonString : `[${jsonString}]`);
                 console.log('Parsed tasks array:', tasksArray);
-            } catch (parseError) {
-                console.error('Error parsing tasks:', parseError);
-                throw new Error('Failed to parse tasks from AI response');
-            }
-
-            // Add timestamp to each task
-            tasksArray = tasksArray.map(task => ({
-                ...task,
-                timestamp: new Date().toISOString()
-            }));
+        } catch (parseError) {
+            console.error('Error parsing tasks:', parseError);
+            throw new Error('Failed to parse tasks from AI response');
+        }
+        
+        // Add timestamp to each task
+        tasksArray = tasksArray.map(task => ({
+            ...task,
+            timestamp: new Date().toISOString()
+        }));
 
             console.log('=== TASKS EXTRACTED SUCCESSFULLY ===');
             console.log('Final tasks array:', tasksArray);
-
-            // Add the new tasks to our storage
-            allTasks = [...allTasks, ...tasksArray];
-            saveTasks();
+        
+        // Add the new tasks to our storage
+        allTasks = [...allTasks, ...tasksArray];
+        saveTasks();
 
             // After successfully extracting tasks and before displaying them
             if (notionApiKey && notionDatabaseId) {
@@ -1146,12 +1146,12 @@ Return tasks as a valid JSON array with no extra text.`
                     }, 5000);
                 }
             }
-
-            // Display all tasks
-            displayTasks(allTasks);
-            statusElement.textContent = preferDutch ? 
-                'Klaar om nieuwe taken op te nemen' : 
-                'Ready to record new tasks';
+        
+        // Display all tasks
+        displayTasks(allTasks);
+        statusElement.textContent = preferDutch ? 
+            'Klaar om nieuwe taken op te nemen' : 
+            'Ready to record new tasks';
             
         } catch (fetchError) {
             clearTimeout(timeoutId);
@@ -1172,7 +1172,7 @@ Return tasks as a valid JSON array with no extra text.`
         
         // Default to Dutch for Striks branding
         const preferDutch = true;
-        
+                         
         statusElement.textContent = preferDutch ? 
             `Fout: ${error.message}` : 
             `Error: ${error.message}`;
@@ -1313,7 +1313,7 @@ function resetUI() {
             recordButton.classList.remove('recording');
         }
     }
-}
+} 
 
 // Function to load saved Notion credentials
 function loadNotionCredentials() {
@@ -1512,7 +1512,10 @@ async function fetchNotionDatabaseSchema() {
     console.log(`Fetching schema for database ID: ${notionDatabaseId}`);
 
     try {
-        const response = await fetch(`https://api.notion.com/v1/databases/${notionDatabaseId}`, {
+        // Use Vercel proxy endpoint instead of direct Notion API
+        const proxyUrl = `/api/notion?endpoint=databases/${notionDatabaseId}`;
+        
+        const response = await fetch(proxyUrl, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${notionApiKey}`,
@@ -1522,15 +1525,27 @@ async function fetchNotionDatabaseSchema() {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => response.text());
-            console.error('Error fetching Notion database schema:', errorData);
+            const errorData = await response.json().catch(() => null);
+            console.error('Notion API error via proxy:', errorData);
+            
+            // Provide specific error feedback
+            let errorMessage = 'Notion database schema ophalen mislukt. ';
+            if (response.status === 401) {
+                errorMessage += 'API key is ongeldig.';
+            } else if (response.status === 404) {
+                errorMessage += 'Database niet gevonden of niet gedeeld met integration.';
+            } else {
+                errorMessage += `HTTP ${response.status}: ${errorData?.message || 'Onbekende fout'}`;
+            }
+            
+            console.error(errorMessage);
             notionDatabaseSchema = null;
             return false;
         }
 
         const schemaData = await response.json();
         notionDatabaseSchema = schemaData.properties;
-        console.log('Successfully fetched Notion database schema:', notionDatabaseSchema);
+        console.log('Successfully fetched Notion database schema via proxy:', notionDatabaseSchema);
         
         // Populate the mapping UI with the schema
         populateNotionMappingUI(notionDatabaseSchema);
@@ -1541,7 +1556,13 @@ async function fetchNotionDatabaseSchema() {
         return true;
 
     } catch (error) {
-        console.error('Exception while fetching Notion database schema:', error);
+        console.error('Exception while fetching Notion database schema via proxy:', error);
+        
+        // More specific error detection for proxy usage
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            console.error('Network error detected - check if Vercel proxy is deployed');
+        }
+        
         notionDatabaseSchema = null;
         return false;
     }
@@ -1627,7 +1648,10 @@ async function addTasksToNotion(tasks) {
         for (const task of tasks) {
             const notionTask = formatTaskForNotion(task);
             
-            const response = await fetch('https://api.notion.com/v1/pages', {
+            // Use Vercel proxy endpoint instead of direct Notion API
+            const proxyUrl = '/api/notion?endpoint=pages';
+            
+            const response = await fetch(proxyUrl, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${notionApiKey}`,
@@ -1639,7 +1663,7 @@ async function addTasksToNotion(tasks) {
             
             if (!response.ok) {
                 const errorData = await response.json().catch(() => response.text());
-                console.error('Error adding task to Notion:', errorData);
+                console.error('Error adding task to Notion via proxy:', errorData);
                 throw new Error(`Failed to add task to Notion: ${errorData.error?.message || errorData}`);
             }
             
@@ -1649,7 +1673,7 @@ async function addTasksToNotion(tasks) {
         
         return results;
     } catch (error) {
-        console.error('Error in addTasksToNotion:', error);
+        console.error('Error in addTasksToNotion via proxy:', error);
         throw error;
     }
 }
@@ -2005,10 +2029,13 @@ async function fetchNotionSchemaForSettings() {
         return;
     }
     
-    console.log('Fetching Notion schema for settings panel...');
+    console.log('Fetching Notion schema for settings panel via proxy...');
     
     try {
-        const response = await fetch(`https://api.notion.com/v1/databases/${notionDatabaseId}`, {
+        // Use Vercel proxy endpoint instead of direct Notion API
+        const proxyUrl = `/api/notion?endpoint=databases/${notionDatabaseId}`;
+        
+        const response = await fetch(proxyUrl, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${notionApiKey}`,
@@ -2018,7 +2045,9 @@ async function fetchNotionSchemaForSettings() {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json().catch(() => null);
+            console.error('Notion API error via proxy:', errorData);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorData?.message || 'Unknown error'}`);
         }
         
         const data = await response.json();
@@ -2029,13 +2058,34 @@ async function fetchNotionSchemaForSettings() {
         // Setup event listeners for the mapping UI
         setupSettingsNotionMappingListeners();
         
-        console.log('Notion schema fetched successfully for settings panel');
+        console.log('Notion schema fetched successfully for settings panel via proxy');
     } catch (error) {
-        console.error('Error fetching Notion schema for settings:', error);
+        console.error('Error fetching Notion schema for settings via proxy:', error);
         
         const statusElement = document.getElementById('settings-notion-mapping-status');
         if (statusElement) {
-            statusElement.textContent = 'Fout bij ophalen database schema. Controleer je Notion configuratie.';
+            let errorMessage = 'Fout bij ophalen database schema. ';
+            
+            // Detect different error types
+            if (error.message.includes('401') || error.message.includes('unauthorized')) {
+                errorMessage += 'API key is ongeldig. Controleer je Notion API key.';
+            }
+            // Detect not found error
+            else if (error.message.includes('404') || error.message.includes('object_not_found')) {
+                errorMessage += 'Database niet gevonden. Controleer of:\n' +
+                              '• Database ID correct is\n' +
+                              '• Database gedeeld is met je integration\n' +
+                              '• Integration toegang heeft tot de database';
+            }
+            // Network/proxy errors
+            else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage += 'Netwerkfout gedetecteerd. Controleer of de Vercel proxy correct is gedeployed.';
+            }
+            else {
+                errorMessage += 'Controleer je Notion configuratie. Details: ' + error.message;
+            }
+            
+            statusElement.textContent = errorMessage;
             statusElement.className = 'status-message error';
         }
     }
