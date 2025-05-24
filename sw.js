@@ -1,8 +1,8 @@
 // === VOICE TASK MANAGER SERVICE WORKER ===
 // Enhanced for credential persistence and Android PWA support
 
-const CACHE_NAME = 'voice-task-manager-v2';
-const STATIC_CACHE_NAME = 'voice-task-static-v2';
+const CACHE_NAME = 'voice-task-manager-v3';
+const STATIC_CACHE_NAME = 'voice-task-static-v3';
 
 // Files to cache for offline functionality
 const STATIC_FILES = [
