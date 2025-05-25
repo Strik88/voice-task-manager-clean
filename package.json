@@ -5,7 +5,6 @@
   "main": "index.html",
   "scripts": {
     "dev": "python -m http.server 8080",
-    "build": "echo 'Static site - no build needed'",
     "start": "echo 'Static site served by Vercel'",
     "preview": "python -m http.server 3000"
   },
