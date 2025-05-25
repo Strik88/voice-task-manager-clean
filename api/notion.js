@@ -57,7 +57,14 @@ export default async function handler(req, res) {
 
     // Make request to Notion API with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    // Use longer timeout for POST requests (creating pages)
+    const timeoutDuration = req.method === 'POST' ? 15000 : 10000; // 15s for POST, 10s for others
+    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+
+    console.log(`Making ${req.method} request to Notion API: ${notionUrl}`);
+    if (requestBody) {
+      console.log('Request body:', requestBody.substring(0, 500) + (requestBody.length > 500 ? '...' : ''));
+    }
 
     const notionResponse = await fetch(notionUrl, {
       method: req.method,
@@ -67,6 +74,7 @@ export default async function handler(req, res) {
     });
 
     clearTimeout(timeoutId);
+    console.log(`Notion API response status: ${notionResponse.status}`);
 
     // Handle Notion API response
     let responseData;
@@ -76,6 +84,11 @@ export default async function handler(req, res) {
       responseData = await notionResponse.json();
     } else {
       responseData = await notionResponse.text();
+    }
+
+    // Log response for debugging
+    if (!notionResponse.ok) {
+      console.error('Notion API error response:', responseData);
     }
 
     // Add caching headers for successful GET requests

@@ -1665,13 +1665,38 @@ async function addTasksToNotion(tasks) {
             });
             
             if (!response.ok) {
-                const errorData = await response.json().catch(() => response.text());
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (jsonError) {
+                    errorData = await response.text();
+                }
+                
                 console.error('Error adding task to Notion via proxy:', errorData);
-                throw new Error(`Failed to add task to Notion: ${errorData.error?.message || errorData}`);
+                
+                // Handle proxy response format
+                let errorMessage = 'Unknown error';
+                if (errorData && typeof errorData === 'object') {
+                    if (errorData.error) {
+                        errorMessage = errorData.message || errorData.error;
+                    } else if (errorData.data && errorData.data.message) {
+                        errorMessage = errorData.data.message;
+                    } else {
+                        errorMessage = JSON.stringify(errorData);
+                    }
+                } else {
+                    errorMessage = errorData || 'Unknown error';
+                }
+                
+                throw new Error(`Failed to add task "${task.task}" to Notion: ${errorMessage}`);
             }
             
             const result = await response.json();
-            results.push(result);
+            // Handle proxy response format
+            const notionResult = result.data || result;
+            results.push(notionResult);
+            
+            console.log(`✅ Task "${task.task}" added to Notion successfully`);
         }
         
         return results;

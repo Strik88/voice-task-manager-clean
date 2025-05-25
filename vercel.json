@@ -113,7 +113,7 @@
   ],
   "functions": {
     "api/notion.js": {
-      "maxDuration": 10
+      "maxDuration": 20
     }
   }
 } 
