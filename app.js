@@ -1544,7 +1544,10 @@ async function fetchNotionDatabaseSchema() {
         }
 
         const schemaData = await response.json();
-        notionDatabaseSchema = schemaData.properties;
+        
+        // Handle proxy response format: { success, status, data, timestamp }
+        const notionData = schemaData.data || schemaData; // Fallback for direct response
+        notionDatabaseSchema = notionData.properties;
         console.log('Successfully fetched Notion database schema via proxy:', notionDatabaseSchema);
         
         // Populate the mapping UI with the schema
@@ -2051,9 +2054,12 @@ async function fetchNotionSchemaForSettings() {
         }
         
         const data = await response.json();
-        notionDatabaseSchema = data.properties;
         
-        populateSettingsNotionMappingUI(data.properties);
+        // Handle proxy response format: { success, status, data, timestamp }
+        const notionData = data.data || data; // Fallback for direct response
+        notionDatabaseSchema = notionData.properties;
+        
+        populateSettingsNotionMappingUI(notionData.properties);
         
         // Setup event listeners for the mapping UI
         setupSettingsNotionMappingListeners();
