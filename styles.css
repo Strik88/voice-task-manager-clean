@@ -100,6 +100,78 @@ button {
     margin-bottom: 20px;
 }
 
+/* Text Input Section Styles */
+.text-input-section {
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.text-input-section h3 {
+    margin-bottom: 15px;
+    color: #1A2B50;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.text-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#manual-text-input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.3s ease;
+}
+
+#manual-text-input:focus {
+    outline: none;
+    border-color: #1A2B50;
+    box-shadow: 0 0 0 3px rgba(26, 43, 80, 0.1);
+}
+
+#manual-text-input::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.text-input-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+.text-input-controls button {
+    font-size: 14px;
+    padding: 10px 16px;
+}
+
+/* Responsive design for text input section */
+@media (max-width: 768px) {
+    .text-input-section {
+        padding: 15px;
+    }
+    
+    .text-input-controls {
+        flex-direction: column;
+    }
+    
+    .text-input-controls button {
+        width: 100%;
+    }
+}
+
 input {
     width: 100%;
     padding: 10px;

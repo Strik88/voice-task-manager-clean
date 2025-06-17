@@ -648,6 +648,38 @@ function setupEventListeners() {
     } else {
         console.error('❌ Record button not found');
     }
+    
+    // Text input functionality event listeners
+    const processTextButton = document.getElementById('process-text-button');
+    const clearTextButton = document.getElementById('clear-text-button');
+    const manualTextInput = document.getElementById('manual-text-input');
+    
+    if (processTextButton) {
+        processTextButton.addEventListener('click', processText);
+        console.log('✅ Process text button event listener added');
+    } else {
+        console.error('❌ Process text button not found');
+    }
+    
+    if (clearTextButton) {
+        clearTextButton.addEventListener('click', clearTextInput);
+        console.log('✅ Clear text button event listener added');
+    } else {
+        console.error('❌ Clear text button not found');
+    }
+    
+    // Enable Enter + Ctrl/Cmd to process text
+    if (manualTextInput) {
+        manualTextInput.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                processText();
+            }
+        });
+        console.log('✅ Text input keyboard shortcut added');
+    } else {
+        console.error('❌ Manual text input not found');
+    }
 
     // Logout button event listener
     if (logoutButton) {
@@ -2284,4 +2316,215 @@ function deleteTask(taskIndex) {
     }
 }
 
-// Helper function to detect if a task is in Dutch
+// Function to process manually entered text (similar to processAudio but without transcription)
+async function processText() {
+    try {
+        // Default to Dutch for Striks branding
+        const preferDutch = true;
+        
+        const manualTextInput = document.getElementById('manual-text-input');
+        const inputText = manualTextInput.value.trim();
+        
+        if (!inputText) {
+            statusElement.textContent = preferDutch ? 
+                'Voer eerst tekst in om te verwerken' : 
+                'Please enter text to process';
+            return;
+        }
+        
+        console.log('=== STARTING TEXT PROCESSING ===');
+        console.log('Input text:', inputText);
+        
+        // Display the input text in transcription area
+        transcriptionContainer.classList.remove('hidden');
+        transcriptionElement.textContent = inputText;
+        
+        // Show copy transcription button
+        if (copyTranscriptionButton) {
+            copyTranscriptionButton.classList.remove('hidden');
+        }
+        
+        // Detect if the input text is in Dutch
+        const isDutchText = detectDutchLanguage(inputText);
+        
+        // Process the text using GPT to extract tasks
+        statusElement.textContent = preferDutch ? 'Taken extraheren...' : 'Extracting tasks...';
+        
+        console.log('=== STARTING GPT CHAT COMPLETION FOR TEXT ===');
+        
+        const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o', // Using a more advanced model for better understanding
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a specialized task extraction and processing system that works with both Dutch and English. Analyze the text and extract actionable tasks, even if they are described in a conversational or indirect manner.
+
+First, detect the language of the input (Dutch or English).
+
+Return the result as a JSON array where each task object has: 
+1. task: The task description (clear, concise, actionable) in the SAME LANGUAGE as the input
+2. criticality: Priority level (low/laag, normal/normaal, high/hoog, very high/zeer hoog)
+3. due_date: Due date if mentioned (in YYYY-MM-DD format) or null if not specified
+4. category: Best guess at category (Work/Werk, Family/Familie, Household/Huishouden, Personal/Persoonlijk, etc.)
+
+For Dutch input, return Dutch task descriptions and Dutch category names. For English input, return English task descriptions and English category names. The criticality should match the language of the input.
+
+Specific instructions:
+- Infer priority based on language used
+- Extract dates even if mentioned relatively (tomorrow/morgen, next week/volgende week, in two days/over twee dagen)
+- If multiple tasks are mentioned, create separate entries for each
+- If the speaker mentions a project, associate relevant tasks with that project
+- Be flexible with informal language but deliver structured tasks
+- Make task descriptions clear and actionable even if input is vague
+
+Examples for English:
+For "I need to call John about the project by tomorrow and also remember to send the report": 
+[
+  {"task":"Call John about the project", "criticality":"normal", "due_date":"2024-05-21", "category":"Work"},
+  {"task":"Send the report", "criticality":"normal", "due_date":null, "category":"Work"}
+]
+
+Examples for Dutch:
+For "Ik moet morgen Jan bellen over het project en ook niet vergeten het rapport te versturen": 
+[
+  {"task":"Jan bellen over het project", "criticality":"normaal", "due_date":"2024-05-21", "category":"Werk"},
+  {"task":"Het rapport versturen", "criticality":"normaal", "due_date":null, "category":"Werk"}
+]
+
+Return tasks as a valid JSON array with no extra text.`
+                    },
+                    { role: 'user', content: inputText }
+                ],
+                temperature: 0.3 // Lower temperature for more consistent, focused responses
+            })
+        });
+
+        console.log('GPT Chat response status:', chatResponse.status);
+        
+        if (!chatResponse.ok) {
+            const errorData = await chatResponse.json();
+            console.error('GPT Chat error:', errorData);
+            throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
+        }
+        
+        const chatData = await chatResponse.json();
+        console.log('GPT Chat response received:', chatData);
+
+        let tasksArray = [];
+        
+        try {
+            // Parse the response to extract the tasks
+            const content = chatData.choices[0].message.content.trim();
+            console.log('GPT response content:', content);
+                
+            // Attempt to extract JSON if it's wrapped in markdown code blocks
+            const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || content.match(/\[([\s\S]*)\]/);
+            const jsonString = jsonMatch ? jsonMatch[1] : content;
+            console.log('Extracted JSON string:', jsonString);
+                
+            tasksArray = JSON.parse(jsonString.includes('[') ? jsonString : `[${jsonString}]`);
+            console.log('Parsed tasks array:', tasksArray);
+        } catch (parseError) {
+            console.error('Error parsing tasks:', parseError);
+            throw new Error('Failed to parse tasks from AI response');
+        }
+        
+        // Add timestamp to each task
+        tasksArray = tasksArray.map(task => ({
+            ...task,
+            timestamp: new Date().toISOString()
+        }));
+
+        console.log('=== TASKS EXTRACTED SUCCESSFULLY FROM TEXT ===');
+        console.log('Final tasks array:', tasksArray);
+        
+        // Add the new tasks to our storage
+        allTasks = [...allTasks, ...tasksArray];
+        saveTasks();
+
+        // After successfully extracting tasks and before displaying them
+        if (notionApiKey && notionDatabaseId) {
+            try {
+                statusElement.textContent = preferDutch ? 
+                    'Taken toevoegen aan Notion...' : 
+                    'Adding tasks to Notion...';
+                
+                console.log('=== STARTING NOTION SYNC FOR TEXT TASKS ===');
+                await addTasksToNotion(tasksArray);
+                console.log('=== NOTION SYNC SUCCESSFUL ===');
+                
+                // Show success message
+                const successMessage = document.createElement('div');
+                successMessage.className = 'status-message success';
+                successMessage.textContent = preferDutch ? 
+                    `${tasksArray.length} taken succesvol toegevoegd aan Notion!` : 
+                    `Successfully added ${tasksArray.length} tasks to Notion!`;
+                statusElement.parentNode.insertBefore(successMessage, statusElement.nextSibling);
+                
+                // Remove success message after 5 seconds
+                setTimeout(() => {
+                    successMessage.remove();
+                }, 5000);
+            } catch (notionError) {
+                console.error('=== NOTION SYNC ERROR ===');
+                console.error('Notion error details:', notionError);
+                
+                // Show error message
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'status-message error';
+                errorMessage.textContent = preferDutch ? 
+                    `Fout bij toevoegen aan Notion: ${notionError.message}` : 
+                    `Error adding to Notion: ${notionError.message}`;
+                statusElement.parentNode.insertBefore(errorMessage, statusElement.nextSibling);
+                
+                // Remove error message after 5 seconds
+                setTimeout(() => {
+                    errorMessage.remove();
+                }, 5000);
+            }
+        }
+        
+        // Display all tasks
+        displayTasks(allTasks);
+        statusElement.textContent = preferDutch ? 
+            'Taken succesvol geëxtraheerd! Klaar voor nieuwe input.' : 
+            'Tasks extracted successfully! Ready for new input.';
+            
+        // Clear the input field after successful processing
+        manualTextInput.value = '';
+        
+    } catch (error) {
+        console.error('=== ERROR IN PROCESSTEXT ===');
+        console.error('Error details:', error);
+        
+        // Default to Dutch for Striks branding
+        const preferDutch = true;
+                         
+        statusElement.textContent = preferDutch ? 
+            `Fout: ${error.message}` : 
+            `Error: ${error.message}`;
+    }
+}
+
+// Function to clear the text input
+function clearTextInput() {
+    const manualTextInput = document.getElementById('manual-text-input');
+    if (manualTextInput) {
+        manualTextInput.value = '';
+        manualTextInput.focus();
+        
+        // Default to Dutch for Striks branding
+        const preferDutch = true;
+        statusElement.textContent = preferDutch ? 
+            'Tekstveld gewist. Klaar voor nieuwe input.' : 
+            'Text field cleared. Ready for new input.';
+    }
+}
+
+// ... existing code ...

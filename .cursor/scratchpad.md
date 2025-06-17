@@ -4,6 +4,12 @@
 
 De gebruiker heeft gevraagd om een grondige code review en opschoning van de voice task manager applicatie zonder functionaliteit te verliezen. De codebase is een PWA (Progressive Web App) die spraakherkenning gebruikt om taken te maken en integreert met Notion.
 
+**NIEUWE FEATURE REQUEST: Text Input Functionality**
+- Gebruiker wil tekst kunnen typen of plakken in een tekstveld
+- Deze tekst moet op dezelfde manier verwerkt worden als transcribed spraak
+- Tasks moeten geëxtraheerd en gesynchroniseerd worden met Notion
+- Zelfde AI processing pipeline gebruiken (GPT task extraction)
+
 **KRITIEKE TOEVOEGING: Vercel Deployment Optimalisatie**
 - Applicatie moet geoptimaliseerd worden voor Vercel gratis tier
 - Notion API integratie moet werken via Vercel serverless functions
@@ -198,28 +204,24 @@ De gebruiker heeft gevraagd om een grondige code review en opschoning van de voi
   - **Test**: Install prompt, manifest
   - **Test**: HTTPS requirements voor PWA
   - Success criteria: Volledige PWA functionaliteit op Vercel
-- [ ] **Task 6.3**: Performance testing op Vercel Edge Network
-  - **Test**: Loading times van verschillende locaties
-  - **Test**: API response times via proxy
-  - **Test**: Mobile performance en Core Web Vitals
-  - Success criteria: Optimale performance globally
 
-### Phase 7: Documentation & Final Cleanup
-- [ ] **Task 7.1**: Update Vercel deployment documentatie
-  - **Update**: `VERCEL_DEPLOYMENT.md` met nieuwe structuur
-  - **Toevoegen**: Environment variables setup
-  - **Toevoegen**: Troubleshooting voor Notion API
-  - Success criteria: Complete Vercel deployment guide
-- [ ] **Task 7.2**: Update README met Vercel focus
-  - **Toevoegen**: Vercel deployment instructies
-  - **Toevoegen**: Gratis tier considerations
-  - **Toevoegen**: Module overzicht
-  - Success criteria: README reflecteert Vercel-optimized setup
-- [ ] **Task 7.3**: Voeg code documentatie toe
-  - **Toevoegen**: JSDoc comments voor alle modules
-  - **Toevoegen**: Vercel API documentation
-  - **Toevoegen**: Performance optimization notes
-  - Success criteria: Volledige documentatie
+### Phase 7: New Feature - Text Input Functionality 🆕 IN PROGRESS
+- [ ] **Task 7.1**: Implementeer text input interface
+  - **UI**: Textarea met placeholder tekst en controls
+  - **Styling**: Consistent met Striks branding
+  - **Accessibility**: Keyboard shortcuts (Ctrl+Enter)
+  - ✅ Success criteria: Gebruiker kan tekst typen of plakken
+- [ ] **Task 7.2**: Implementeer text processing functionaliteit  
+  - **Functie**: `processText()` - hergebruik GPT task extraction logic
+  - **Integratie**: Zelfde AI pipeline als voice transcription
+  - **Notion sync**: Automatische synchronisatie naar Notion
+  - ✅ Success criteria: Tekst wordt verwerkt tot structured tasks
+- [ ] **Task 7.3**: Test text input functionaliteit
+  - **Test**: Nederlandse en Engelse tekst input
+  - **Test**: Multiple tasks in één tekst
+  - **Test**: Date extraction en priority detection
+  - **Test**: Notion synchronisatie
+  - Success criteria: Text input werkt identiek aan voice input
 
 ## Project Status Board
 
