@@ -307,14 +307,16 @@ Of direct naar Phase 4: JavaScript Modularization?
 **✅ DEPLOYMENT READY - All Optimizations Complete & PUSHED TO GIT**
 
 **🚨 KRITIEKE FIX TOEGEPAST - Notion API Proxy Response Handling**
+**🔧 TIMEOUT FIX TOEGEPAST - Notion API POST Requests**
 
 **Git Status:**
-✅ **Successfully pushed to GitHub** - Latest commit `05b2623`
+✅ **Successfully pushed to GitHub** - Latest commit `61ab213`
 - All Vercel optimizations committed
 - Enhanced Notion API proxy included
 - File structure cleanup completed
 - Documentation updated
 - **🔧 NOTION API FIX**: Proxy response format handling corrected
+- **⏱️ TIMEOUT FIX**: Extended timeouts for POST requests
 - Ready for Vercel deployment
 
 **🔧 Notion API Fix Details:**
@@ -324,6 +326,15 @@ Of direct naar Phase 4: JavaScript Modularization?
 - `fetchNotionDatabaseSchema()` - Fixed data extraction: `schemaData.data.properties`
 - Fallback toegevoegd voor backward compatibility
 - Error "Cannot convert undefined or null to object" opgelost
+
+**⏱️ Timeout Fix Details:**
+**Probleem:** Notion API POST requests (task creation) timeout na 8 seconden
+**Oplossing:**
+- **API Proxy**: Timeout verhoogd naar 15s voor POST, 10s voor GET
+- **Vercel Config**: maxDuration verhoogd naar 20 seconden
+- **Error Handling**: Verbeterde foutmeldingen met task names
+- **Response Handling**: Correct extractie van proxy response data
+- **Logging**: Toegevoegd voor betere debugging
 
 **Test Results:**
 1. ✅ **Lokale functionaliteit check** - PASSED
@@ -336,7 +347,7 @@ Of direct naar Phase 4: JavaScript Modularization?
    - All changes committed and pushed to origin/master
    - Repository ready for Vercel import
    - Clean working directory
-   - **Latest commit includes Notion API fix**
+   - **Latest commit includes timeout fixes**
 
 3. ✅ **Notion API Proxy Fix** - APPLIED
    - Response format handling corrected
@@ -344,7 +355,13 @@ Of direct naar Phase 4: JavaScript Modularization?
    - Settings panel Notion integration fixed
    - Error messages improved
 
-4. 🚀 **Vercel deployment instructies** - READY
+4. ✅ **Notion API Timeout Fix** - APPLIED
+   - POST request timeout extended to 15 seconds
+   - Vercel function timeout extended to 20 seconds
+   - Better error handling with task-specific messages
+   - Enhanced logging for debugging
+
+5. 🚀 **Vercel deployment instructies** - READY
    - Updated VERCEL_DEPLOYMENT.md met optimalisaties
    - Created test-deployment.md checklist
    - Git repository ready voor deployment
